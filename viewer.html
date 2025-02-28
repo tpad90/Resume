@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Viewer</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; width: 100%; height: 100%; }
+    </style>
+</head>
+<body>
+    <canvas id="pdfCanvas"></canvas>
+    <script src="pdfjs/pdf.js"></script>
+    <script>
+        const pdfUrl = 'https://raw.githubusercontent.com/tpad90/resume/main/Tanushree-Padath-Resume-2025-UX.pdf'; // Replace with your PDF's raw URL
+        const canvas = document.getElementById('pdfCanvas');
+        const context = canvas.getContext('2d');
+        let pdfDoc = null, pageNum = 1, pageRendering = false, pageNumPending = null;
+
+        pdfjsLib.getDocument(pdfUrl).promise.then(function(pdf) {
+            pdfDoc = pdf;
+            renderPage(pageNum);
+        });
+
+        function renderPage(num) {
+            pageRendering = true;
+            pdfDoc.getPage(num).then(function(page) {
+                const viewport = page.getViewport({ scale: window.devicePixelRatio });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                const renderContext = { canvasContext: context, viewport: viewport };
+                page.render(renderContext).promise.then(function() {
+                    pageRendering = false;
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>
